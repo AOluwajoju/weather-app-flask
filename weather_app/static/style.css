@@ -1,0 +1,130 @@
+html {
+  font-family: sans-serif;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100vh;
+  background: rgb(77, 229, 255);
+  background: linear-gradient(
+    rgba(77, 229, 255, 1) 0%,
+    rgba(85, 30, 180, 1) 100%
+  );
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: center;
+  color: white;
+}
+
+.container {
+  display: flex;
+  align-items: center;
+}
+
+.results {
+  border-left: 1px solid white;
+  padding: 50px;
+  margin-left: 80px;
+}
+
+section {
+  padding: 40px;
+  width: 100%;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.formWrapper {
+  border: 5px solid white;
+  border-radius: 8px;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 300px;
+}
+
+h1 {
+  font-size: 80px;
+  text-align: center;
+  width: 100%;
+}
+
+#btnsubmit,
+button,
+input,
+select {
+  padding: 10px;
+  border-radius: 8px;
+  width: 50%;
+}
+
+#btnsubmit,
+button {
+  background: black;
+  color: white;
+}
+
+button {
+  margin: auto 0;
+  cursor: pointer;
+}
+
+label,
+select,
+input {
+  margin-bottom: 15px;
+}
+
+label {
+  font-size: 20px;
+}
+
+#btnsubmit {
+  cursor: pointer;
+}
+
+.flash {
+  text-align: center;
+  text-decoration: underline;
+  width: 50%;
+  color: black;
+}
+
+.details {
+  display: flex;
+}
+
+.box {
+  padding: 20px;
+  margin-left: 20px;
+  background: #000000;
+  border-radius: 8px;
+  opacity: 50;
+}
+
+img {
+  width: 150px;
+}
+
+#temp {
+  font-size: 80px;
+}
+
+#condition {
+  margin-top: -30px;
+  font-size: 20px;
+}
+
+.coords {
+  font-size: 40px;
+}
