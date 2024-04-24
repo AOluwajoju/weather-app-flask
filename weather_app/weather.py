@@ -1,65 +1,42 @@
-import requests
 from datetime import datetime, timedelta
 
 
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, session, url_for
+    Blueprint, flash, g, render_template, request, redirect, url_for
 )
 
 from weather_app.db import get_db
+from weather_app.auth import login_required
+
+from weather_app.weather_requests import make_request
+
+
 
 bp = Blueprint('weather', __name__, url_prefix='/weather')
 
 
 @bp.route('/', methods=('GET', 'POST'))
+@login_required
 def weather():        
     locationData = {}        
     db = get_db()
+    locations = [] 
+    
+    def get_locations():
+        nonlocal locations
+        
+        locations =  db.execute(
+            "SELECT * FROM locations WHERE saved_by = ?",
+            (g.user['id'],),
+        ).fetchall()
+    
+    get_locations()
 
     if request.method == 'POST':
         parameter = request.form['parameter']
         value = request.form['value']
-        error = None
-        
-        def make_request(param):
-            nonlocal error
-            nonlocal locationData
-            # Define the API endpoint URL
-            url = f"http://api.weatherapi.com/v1/current.json?key=708c894bf3324951898134601242003&q={param}&aqi=no"                       
-            # Make a GET request to the API
-            response = requests.get(url)
-
-            # Check if the request was successful
-            if response.status_code == 200:
-                data = response.json()
-                try:
-                    db.execute(
-                        "INSERT INTO weather (longitude, latitude, city, country, icon, temperature, condition) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                        (data['location']['lon'], 
-                        data['location']['lat'], 
-                        data['location']['name'], 
-                        data['location']['country'], 
-                        data['current']['condition']['icon'], 
-                        data['current']['temp_c'], 
-                        data['current']['condition']['text']),
-                    )
-                    db.commit()
-                except Exception as e:
-                    print("Error:", e)
-                    
-                locationData.update({
-                    'longitude': data['location']['lon'], 
-                    'latitude' : data['location']['lat'],
-                    'city' : data['location']['name'], 
-                    'country' : data['location']['country'], 
-                    'icon' :  data['current']['condition']['icon'], 
-                    'temperature' : data['current']['temp_c'], 
-                    'condition' : data['current']['condition']['text']
-                })
-            elif response.status_code == 400:
-                error="No matching location found." 
-            else:
-                error="Something went wrong. Try again."     
+        location = request.form['location']
+        error = None    
         
 
         if not parameter:
@@ -94,15 +71,21 @@ def weather():
                                 round(float(coords[0]), 2), 
                                 round(float(coords[1]), 2),
                                 ))
+                            db.execute("DELETE FROM locations WHERE latitude = ? AND longitude = ?", (
+                                round(float(coords[0]), 2), 
+                                round(float(coords[1]), 2),
+                                ))
+                            
                             db.commit()
 
-                            make_request(value)                        
+                            make_request(value, locationData, error, g, db, location)                        
                         else:
                             #use result
-                            return render_template('weather.html', data=result)
+                            get_locations()
+                            return render_template('weather.html', data=result, locations=locations)
                     else:
 
-                        make_request(value)
+                        make_request(value, locationData, error, g, db, location)
                     
             elif parameter == 'city':
                 value = value.strip() #remove trailing spaces
@@ -121,15 +104,25 @@ def weather():
                             (value.strip(),),)
                         db.commit()
 
-                        make_request(value)                        
+                        make_request(value, locationData, error, g, db, location)                        
                     else:
                         #use result
-                        return render_template('weather.html', data=result)
+                        get_locations()
+                        return render_template('weather.html', data=result, locations=locations)
                 else:
 
-                    make_request(value)
+                    make_request(value, locationData, error, g, db, location)
                     
                     
         flash(error)
+    get_locations()
+    return render_template('weather.html', data=locationData, locations=locations)
 
-    return render_template('weather.html', data=locationData)
+
+@bp.route('/<int:id>/delete', methods=('POST',))
+@login_required
+def delete(id):
+    db = get_db()
+    db.execute('DELETE FROM locations WHERE id = ?', (id,))
+    db.commit()
+    return redirect(url_for('weather.weather'))

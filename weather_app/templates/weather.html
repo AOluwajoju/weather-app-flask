@@ -1,59 +1,60 @@
-<!doctype html>
-<title>Weather App</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-<script src="{{ url_for('static', filename='script.js') }}"></script>
+{% extends 'base.html' %}
 
-<section class="content">
-    <h1>Weather App</h1>
+{% block header %}
+<h1>{% block title %}Search{% endblock %}</h1>
+{% endblock %}
 
-    <div class="container">
-        <div class="formWrapper">
-            <form method="post" id="weatherForm">
-                <label for="parameter">Select the request parameter:</label>
-                <select name="parameter" id="parameter" onchange="updatePromptText()">
-                    <option value="city">City/Location Name</option>
-                    <option value="coords">Latitude & Longitude</option>
-                </select>
-                <label for="value" id="inputPrompt">Enter City/Location Name:</label>
-                <input name="value" id="value" required>
-                <br />
-                <input type="submit" value="Get Weather Data" id="btnsubmit">
-                {% for message in get_flashed_messages() %}
-                {% if message %}
-                <div class="flash">Error: {{ message }}</div>
-                {% endif %}
-                {% endfor %}
-            </form>
-            <p style="text-align:center">OR</p>
-            <button onclick="detectLocation()">Detect current Location</button>
-            <div id="detectError" class="flash"></div>
-        </div>
+{% block content %}
 
-
-        <div class="results">
-            {% if data %}
-            <h2>{{ data['city'] }}, {{ data['country'] }}</h2>
-            <div class="details">
-                <img src="{{ data['icon'] }}" />
-                <div>
-                    <p style="display: flex;  align-items: flex-start;
-                ">
-                        <b id="temp">{{ data['temperature'] }}</b>&deg;C
-                    </p>
-                    <p id="condition">{{ data['condition'] }}</p>
-                </div>
-                <div class='box'>
-                    <p>Longitude:</p>
-                    <b class="coords">{{ data['longitude'] }}</b>
-                </div>
-                <div class="box">
-                    <p>Latitude:</p>
-                    <b class="coords"> {{ data['latitude'] }}</b>
-                </div>
-            </div>
+<div class="container">
+    <div class="formWrapper">
+        <form method="post" id="weatherForm">
+            <label for="parameter">Select the request parameter:</label>
+            <select name="parameter" id="parameter" onchange="updatePromptText()">
+                <option value="city">City/Location Name</option>
+                <option value="coords">Latitude & Longitude</option>
+            </select>
+            <label for="value" id="inputPrompt">Enter City/Location Name:</label>
+            <input name="value" id="value" required>
+            <br />
+            <input name="location" id="location" type="number" value=0 required style="display:none;">
+            <input type="submit" value="Get Weather Data" id="btnsubmit">
+            {% for message in get_flashed_messages() %}
+            {% if message %}
+            <div class="flash">Error: {{ message }}</div>
             {% endif %}
-        </div>
+            {% endfor %}
+        </form>
+        <p style="text-align:center">OR</p>
+        <button onclick="detectLocation()">Detect current Location</button>
+        <div id="detectError" class="flash"></div>
     </div>
 
 
-</section>
+    <div class="results">
+        {% if data %}
+        <h2>{{ data['city'] }}, {{ data['country'] }}</h2>
+        <div class="details">
+            <img src="{{ data['icon'] }}" />
+            <div>
+                <p style="display: flex;  align-items: flex-start;
+                ">
+                    <b id="temp">{{ data['temperature'] }}</b>&deg;C
+                </p>
+                <p id="condition">{{ data['condition'] }}</p>
+            </div>
+            <div class='box'>
+                <p>Longitude:</p>
+                <b class="coords">{{ data['longitude'] }}</b>
+            </div>
+            <div class="box">
+                <p>Latitude:</p>
+                <b class="coords"> {{ data['latitude'] }}</b>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+
+{% endblock %}

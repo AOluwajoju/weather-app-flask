@@ -3,8 +3,6 @@ html {
 }
 
 body {
-  display: flex;
-  align-items: center;
   width: 100%;
   height: 100vh;
   background: rgb(77, 229, 255);
@@ -18,9 +16,57 @@ body {
   color: white;
 }
 
-.container {
+.container,
+.authContainer,
+.user,
+nav {
   display: flex;
   align-items: center;
+}
+
+nav {
+  justify-content: space-between;
+  width: 100%;
+  padding: 30px;
+}
+
+.authContainer {
+  justify-content: center;
+}
+
+#logout {
+  margin-left: 20px;
+  text-decoration: none;
+  padding: 15px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.locationWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.locationList {
+  border: 5px solid white;
+  border-radius: 8px;
+  padding: 20px;
+  max-height: 120px;
+  overflow: auto;
+}
+
+.list {
+  padding: 10px;
+  margin-top: 10px;
+  font-size: 20px;
+  cursor: pointer;
+  border-top: 1px solid white;
+  border-bottom: 1px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
 }
 
 .results {
@@ -30,11 +76,12 @@ body {
 }
 
 section {
-  padding: 40px;
+  padding-left: 40px;
+  padding-right: 40px;
   width: 100%;
 }
 
-form {
+#weatherForm {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -69,7 +116,8 @@ select {
 }
 
 #btnsubmit,
-button {
+button,
+#logout {
   background: black;
   color: white;
 }

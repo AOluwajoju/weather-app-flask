@@ -1,0 +1,42 @@
+<!doctype html>
+<title>{% block title %}{% endblock %} - Weather</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+<nav>
+    <h2>Weather App</h2>
+    <div class="user">
+        {% if g.user %}
+        <b>{{ g.user['username'] }}</b>
+        <a id="logout" href="{{ url_for('auth.logout') }}">Log Out</a>
+        {% endif %}
+    </div>
+</nav>
+
+{% if g.user %}
+<div class="locationWrapper">
+
+    <div class="locationList">
+        <b>Your Locations</b>
+        {% for location in locations %}
+        {% if location %}
+        <div class="list">
+            <p>{{ location['city'] + ', ' + location['country'] }}</p>
+            <form action="{{ url_for('weather.delete', id=location['id']) }}" method="post">
+                <input style="width: 100%;" type="submit" value="Delete" onclick="return confirm('Are you sure?');">
+            </form>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+
+<section class="content">
+    <header>
+        {% block header %}{% endblock %}
+    </header>
+
+    {% block content %}{% endblock %}
+</section>

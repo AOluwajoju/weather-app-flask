@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<h1>{% block title %}Register{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+
+<div class="authContainer">
+    <div class="formWrapper">
+        <form method="post" id="register">
+            <form method="post">
+                <label for="username">Username</label>
+                <input name="username" id="username" required>
+                <label for="password">Password</label>
+                <input type="password" name="password" id="password" required>
+                <input type="submit" value="Register" style="width: 100%;">
+            </form>
+            {% for message in get_flashed_messages() %}
+            {% if message %}
+            <div class=" flash">Error: {{ message }}
+            </div>
+            {% endif %}
+            {% endfor %}
+            <hr />
+            <div class="user">
+                <b>Registered?</b>
+                <a id="logout" href="{{ url_for('auth.login') }}">Log In</a>
+            </div>
+        </form>
+
+
+    </div>
+</div>
+
+
+{% endblock %}

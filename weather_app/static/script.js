@@ -23,8 +23,11 @@ function detectLocation() {
 
       document.getElementById("value").value = `${pos.long},${pos.lat}`;
       document.getElementById("parameter").value = "coords";
+      document.getElementById("location").value = 1;
+
       // Trigger form submission
       document.getElementById("weatherForm").submit();
+      document.getElementById("location").value = 0;
     },
 
     (error) => {

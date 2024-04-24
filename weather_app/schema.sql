@@ -1,4 +1,12 @@
 DROP TABLE IF EXISTS weather;
+DROP TABLE IF EXISTS user;
+DROP TABLE IF EXISTS locations;
+
+CREATE TABLE user (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT UNIQUE NOT NULL,
+  password TEXT NOT NULL
+);
 
 CREATE TABLE weather(
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -9,5 +17,19 @@ CREATE TABLE weather(
   country TEXT NOT NULL,
   icon TEXT NOT NULL,
   temperature FLOAT NOT NULL,
-  condition TEXT NOT NULL
+  condition TEXT NOT NULL,
+  queried_by INTEGER NOT NULL,
+  FOREIGN KEY (queried_by) REFERENCES user (id)
+);
+
+CREATE TABLE locations(
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  longitude FLOAT NOT NULL,
+  latitude FLOAT NOT NULL,
+  city TEXT NOT NULL,
+  country TEXT NOT NULL,
+  saved_by INTEGER NOT NULL,
+  FOREIGN KEY (saved_by) REFERENCES user (id)
+  UNIQUE(longitude, latitude)
+
 );
