@@ -1,15 +1,28 @@
 import os
 
 from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, current_user
 
+db = SQLAlchemy()
 
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
-    app.config.from_mapping(
-        SECRET_KEY='dev',
-        DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
-    )
+    app.config['SECRET_KEY'] = 'secret-key'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
+    
+    db.init_app(app)
+    
+    login_manager = LoginManager()
+    login_manager.login_view = 'auth.login'
+    login_manager.init_app(app)
+    
+    from .models import User
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
+    
 
     if test_config is None:
         # load the instance config, if it exists, when not testing
@@ -28,10 +41,10 @@ def create_app(test_config=None):
     @app.route('/hello')
     def hello():
         return 'Weather App!'
-    
-    
-    from . import db
-    db.init_app(app)
+ 
+    @app.context_processor
+    def inject_current_user():
+        return dict(current_user=current_user)
 
     from . import weather
     app.register_blueprint(weather.bp)

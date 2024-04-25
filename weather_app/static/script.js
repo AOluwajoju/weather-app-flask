@@ -45,3 +45,11 @@ function detectLocation() {
     }
   );
 }
+
+function viewLocation(longitude, latitude) {
+  document.getElementById("value").value = `${longitude},${latitude}`;
+  document.getElementById("parameter").value = "coords";
+
+  // Trigger form submission
+  document.getElementById("weatherForm").submit();
+}

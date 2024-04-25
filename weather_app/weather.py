@@ -2,15 +2,19 @@ from datetime import datetime, timedelta
 
 
 from flask import (
-    Blueprint, flash, g, render_template, request, redirect, url_for
+    Blueprint, flash, render_template, request, redirect, url_for
 )
 
-from weather_app.db import get_db
+from . import db
+
+from .models import Weather
+from .models import Location
+
 from weather_app.auth import login_required
 
-from weather_app.weather_requests import make_request
+from weather_app.weather_requests import make_request, save_location
 
-
+from flask_login import login_required, current_user
 
 bp = Blueprint('weather', __name__, url_prefix='/weather')
 
@@ -19,17 +23,12 @@ bp = Blueprint('weather', __name__, url_prefix='/weather')
 @login_required
 def weather():        
     locationData = {}        
-    db = get_db()
     locations = [] 
     
     def get_locations():
         nonlocal locations
         
-        locations =  db.execute(
-            "SELECT * FROM locations WHERE saved_by = ?",
-            (g.user['id'],),
-        ).fetchall()
-    
+        locations =  Location.query.filter_by(saved_by_id=current_user.id).all()
     get_locations()
 
     if request.method == 'POST':
@@ -51,67 +50,68 @@ def weather():
                 coords = value.split(',')
                 if len(coords)!=2:
                     error="Invalid format used"
-                else:
-                
+                else:                
                     # check if record with coordinates exists
-                    result = db.execute(
-                        "SELECT * FROM weather WHERE latitude = ? AND longitude = ?",
-                        (
-                            round(float(coords[0]), 2), 
-                            round(float(coords[1]), 2),
-                        ),
-                    ).fetchone()
+                    result = Weather.query.filter_by(latitude=round(float(coords[0]), 2), longitude=round(float(coords[1]), 2)).first()
                     
                     if result:
-                        timestamp = result["date_accessed"]
+                        timestamp = result.date_accessed
                         
                         # Check if the timestamp is older than 24 hours
                         if timestamp < (datetime.now() - timedelta(hours=24)):
-                            db.execute("DELETE FROM weather WHERE latitude = ? AND longitude = ?", (
-                                round(float(coords[0]), 2), 
-                                round(float(coords[1]), 2),
-                                ))
-                            db.execute("DELETE FROM locations WHERE latitude = ? AND longitude = ?", (
-                                round(float(coords[0]), 2), 
-                                round(float(coords[1]), 2),
-                                ))
+                            db.session.delete(result)
                             
-                            db.commit()
+                            location_temp= Location.query.filter_by(latitude=result.latitude, longitude=result.longitude).first()
+                            db.session.delete(location_temp)
+                            
+                            db.session.commit()
 
-                            make_request(value, locationData, error, g, db, location)                        
+                            make_request(value, locationData, error, location)                        
                         else:
                             #use result
                             get_locations()
+                            
+                            if location=="1":
+                                #if location is not saved
+                                location_temp =  Location.query.filter_by(latitude=result.latitude, longitude=result.longitude).first()
+                                if location_temp is None:
+                                    save_location(result.longitude, result.latitude, result.city, result.country, current_user.id)
+                            
                             return render_template('weather.html', data=result, locations=locations)
                     else:
 
-                        make_request(value, locationData, error, g, db, location)
+                        make_request(value, locationData, error, location)
                     
             elif parameter == 'city':
                 value = value.strip() #remove trailing spaces
                 # check if record with coordinates exists
-                result = db.execute(
-                    "SELECT * FROM weather WHERE city = ?",
-                    (value[0].upper() + value[1:],),
-                ).fetchone()
+                result = Weather.query.filter_by(city=value[0].upper() + value[1:]).first()
+                print(result)
                 
-                if result:
-                    timestamp = result["date_accessed"]
+                if result is not None:
+                    timestamp = result.date_accessed
                     
                     # Check if the timestamp is older than 24 hours
                     if timestamp < (datetime.now() - timedelta(hours=24)):
-                        db.execute("DELETE FROM weather WHERE city = ?",
-                            (value.strip(),),)
-                        db.commit()
+                        weather_temp= Weather.query.filter_by(city=value.strip()).first()
+                        db.session.delete(weather_temp)
+                        db.session.commit()
 
-                        make_request(value, locationData, error, g, db, location)                        
+                        make_request(value, locationData, error, location)                        
                     else:
                         #use result
                         get_locations()
+                        
+                        if location=="1":
+                                #if location is not saved
+                                location_temp =  Location.query.filter_by(latitude=result.latitude, longitude=result.longitude).first()
+                                if location_temp is None:
+                                    save_location(result.longitude, result.latitude, result.city, result.country, current_user.id)
+                                    
                         return render_template('weather.html', data=result, locations=locations)
                 else:
 
-                    make_request(value, locationData, error, g, db, location)
+                    make_request(value, locationData, error, location)
                     
                     
         flash(error)
@@ -122,7 +122,7 @@ def weather():
 @bp.route('/<int:id>/delete', methods=('POST',))
 @login_required
 def delete(id):
-    db = get_db()
-    db.execute('DELETE FROM locations WHERE id = ?', (id,))
-    db.commit()
+    location_temp= Location.query.get_or_404(id)
+    db.session.delete(location_temp)
+    db.session.commit()
     return redirect(url_for('weather.weather'))

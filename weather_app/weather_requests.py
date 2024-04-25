@@ -1,37 +1,47 @@
 import requests
+from .models import Weather
+from .models import Location
+from flask_login import current_user
+from . import db
 
-def make_request(param, locationData, error, g, db, location):
+def save_location(longitude, latitude, city, country, id):
+    location_temp = Location(longitude=longitude, 
+                             latitude=latitude, 
+                             city=city,
+                             country=country,
+                             saved_by_id=id)
+    db.session.add(location_temp)
+    db.session.commit()
+
+
+def make_request(param, locationData, error, location):
     # Define the API endpoint URL
     url = f"http://api.weatherapi.com/v1/current.json?key=708c894bf3324951898134601242003&q={param}&aqi=no"
     # Make a GET request to the API
     response = requests.get(url)
-
     # Check if the request was successful
     if response.status_code == 200:
         data = response.json()
         try:
-            db.execute(
-                "INSERT INTO weather (longitude, latitude, city, country, icon, temperature, condition, queried_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                (data['location']['lon'],
-                 data['location']['lat'],
-                 data['location']['name'],
-                 data['location']['country'],
-                 data['current']['condition']['icon'],
-                 data['current']['temp_c'],
-                 data['current']['condition']['text'],
-                 g.user['id']),
-            )
-
+            weather = Weather(longitude=data['location']['lon'], 
+                              latitude=data['location']['lat'], 
+                              city=data['location']['name'],
+                              country=data['location']['country'],
+                              icon=data['current']['condition']['icon'],
+                              temperature=data['current']['temp_c'],
+                              condition=data['current']['condition']['text'],
+                              queried_by=current_user)
+            db.session.add(weather)
+            db.session.commit()
             if location == '1':
-                db.execute(
-                    "INSERT OR IGNORE INTO locations (longitude, latitude, city, country, saved_by) VALUES (?, ?, ?, ?, ?)",
-                    (data['location']['lon'],
-                     data['location']['lat'],
-                     data['location']['name'],
-                     data['location']['country'],
-                     g.user['id']),
-                )
-            db.commit()
+                
+                save_location(data['location']['lon'], 
+                              data['location']['lat'], 
+                              data['location']['name'], 
+                              data['location']['country'], 
+                              current_user.id
+                              )
+            
 
             locationData.update({
                 'longitude': data['location']['lon'],

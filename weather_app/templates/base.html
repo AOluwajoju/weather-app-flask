@@ -6,14 +6,14 @@
 <nav>
     <h2>Weather App</h2>
     <div class="user">
-        {% if g.user %}
-        <b>{{ g.user['username'] }}</b>
+        {% if current_user.is_authenticated %}
+        <b>{{ current_user.username }}</b>
         <a id="logout" href="{{ url_for('auth.logout') }}">Log Out</a>
         {% endif %}
     </div>
 </nav>
 
-{% if g.user %}
+{% if current_user.is_authenticated %}
 <div class="locationWrapper">
 
     <div class="locationList">
@@ -22,8 +22,11 @@
         {% if location %}
         <div class="list">
             <p>{{ location['city'] + ', ' + location['country'] }}</p>
+            <button style="width: fit-content;"
+                onclick="viewLocation( '{{ location.longitude }}', '{{ location.latitude }}')">View</button>
             <form action="{{ url_for('weather.delete', id=location['id']) }}" method="post">
-                <input style="width: 100%;" type="submit" value="Delete" onclick="return confirm('Are you sure?');">
+                <input id="deleteButton" style="width: 100%; margin-top: 13px; margin-left:5px" type="submit"
+                    value="Delete" onclick="return confirm('Are you sure?');">
             </form>
         </div>
         {% endif %}
