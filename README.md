@@ -13,7 +13,7 @@ To setup this project.
 
   `(venv)$ pip3 install -r requirements.txt`
 
-  To setup Database.
+To setup Database.
 
 - activate the python shell by running
 
@@ -32,7 +32,7 @@ To setup this project.
 
   `>>> exit()`
 
-  To start the server
+To start the server
 
 - in the virtual environment, run:
 
